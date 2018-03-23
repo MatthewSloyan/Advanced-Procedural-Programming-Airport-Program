@@ -22,6 +22,10 @@ void displayAllPassenger(struct node* top);
 void deletePassengerAtStart(struct node** top);
 void deletePassengerAtEnd(struct node* top);
 
+int searchList(struct node* top);
+void searchDisplayList(struct node* top, int passengerLocation);
+void updatePassenger(struct node* top, int passengerLocation);
+
 void main()
 { 
 	FILE* filep;
@@ -37,6 +41,7 @@ void main()
 	int i, j;
 
 	int found = 0;
+	int location = 0;
 	int compare;
 
 	printf("XYZ Airport Ltd\n");
@@ -127,13 +132,46 @@ void main()
 					}
 					break;
 				case 2:
-					displayAllPassenger(headPtr);
+					if (headPtr == NULL)
+					{
+						printf("Error, the list is empty. Please add a passenger and try again.");
+					}
+					else {
+						displayAllPassenger(headPtr);
+					}
 					break;
 				case 3:
-					
+					if (headPtr == NULL)
+					{
+						printf("Error, the list is empty. Please add a passenger and try again.");
+					}
+					else {
+						location = searchList(headPtr);
+
+						if (location == 0) {
+							printf("\nPassenger not found, please try again\n");
+						}
+						else {
+							searchDisplayList(headPtr, location);
+						}
+					}
 					break;
 				case 4:
-					
+					if (headPtr == NULL)
+					{
+						printf("Error, the list is empty. Please add a passenger and try again.");
+					}
+					else {
+						location = searchList(headPtr);
+
+						if (location == 0) {
+							printf("\nPassenger not found, please try again\n");
+						}
+						else {
+							updatePassenger(headPtr, location);
+						}
+					}
+					break;
 					break;
 				case 5:
 					
@@ -344,4 +382,136 @@ void displayAllPassenger(struct node* top)
 	}
 }
 
+//function to search a specific element in a list and return the location
+int searchList(struct node* top)
+{
+	struct node* curr;
+	char userInput[30];
+	char passPortNumConverted[30];
+	int passengerNum = 0;
+	int passengerNumFinal = 0;
+	int found = 0;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	//ask the user to input a value
+	printf("\nPlease enter the passport number or first/second name to search by\n");
+	scanf("%s", userInput);
+
+	//while the current pointer is not equal to null continue through the list
+	while (curr != NULL)
+	{
+		passengerNum++;
+
+		//convert the passport number to a string for comparision
+		sprintf(passPortNumConverted, "%d", curr->passportNum);
+
+		//if the value is found print out the value, location and exit the loop
+		if (strcmp(userInput, passPortNumConverted) == 0 || strcmp(userInput, curr->firstName) == 0 || strcmp(userInput, curr->secondName) == 0) {
+			curr = curr->NEXT;
+			found = 1;
+			break;
+		}
+
+		//move curr to the next pointer
+		curr = curr->NEXT;
+	}
+
+	if (found == 1) {
+		passengerNumFinal = passengerNum;
+	}
+	return passengerNumFinal;
+}
+
+//function to print out the node at the given location
+void searchDisplayList(struct node* top, int passengerLocation)
+{
+	struct node* curr;
+	int i;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	if (passengerLocation != 1) {
+		for (i = 0; i < passengerLocation - 1; i++)
+		{
+			curr = curr->NEXT;
+		}
+	}
+
+	printf("\nPASSENGER %d\n===========\n", passengerLocation);
+
+	printf("Passport Num: %d\n", curr->passportNum);
+	printf("Name: %s %s\n", curr->firstName, curr->secondName);
+	printf("DOB: %d\n", curr->dob);
+	printf("Email: %s\n", curr->emailAddress);
+	printf("Country traveled from: %d\n", curr->countryTraveledFrom);
+	printf("Travel Class: %d\n", curr->travelClass);
+	printf("Trips per year: %d\n", curr->tripsPerYear);
+	printf("Duration: %d\n", curr->journeyTime);
+}
+
+void updatePassenger(struct node* top, int passengerLocation) {
+	struct node* curr;
+	int i;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	if (passengerLocation != 1) {
+		for (i = 0; i < passengerLocation - 1; i++)
+		{
+			curr = curr->NEXT;
+		}
+	}
+
+	//ask the user to input values
+	printf("\nPlease enter your new email address:\n");
+	scanf("%s", curr->emailAddress);
+
+	do
+	{
+		printf("\nWhich of the following areas did you travel from:\n [1] UK\n [2] Rest of Europe\n [3] Asia\n [4] Americas\n [5] Australasia\n");
+		scanf("%d", &curr->countryTraveledFrom);
+	} while (curr->countryTraveledFrom < 1 || curr->countryTraveledFrom > 5);
+
+	do
+	{
+		printf("\nWhat travel class did you use to travel to Ireland:\n [1] Economy\n [2] Premium Economy\n [3] Business Class\n [4] First Class\n");
+		scanf("%d", &curr->travelClass);
+	} while (curr->travelClass < 1 || curr->travelClass > 4);
+
+	do
+	{
+		printf("\nHow many trips to Ireland do you make per year:\n [1] Less than three times per year\n [2] Less than five times per year\n [3] More than five times per year\n");
+		scanf("%d", &curr->tripsPerYear);
+	} while (curr->tripsPerYear < 1 || curr->tripsPerYear > 3);
+
+	do
+	{
+		printf("\nOn average how long is your duration:\n [1] One Day\n [2] Less than 3 days\n [3] Less than 7 days\n [4] More than 7 days\n");
+		scanf("%d", &curr->journeyTime);
+	} while (curr->journeyTime < 1 || curr->journeyTime > 4);
+}
+
+//function to get the length of the linked list
+/*void length(struct node* top)
+{
+	struct node* curr;
+	int length = 0;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	//while the current pointer is not equal to null continue through the list
+	while (curr != NULL)
+	{
+		length++; //increment the length at every node
+		curr = curr->NEXT; //move curr to the next pointer
+	}
+
+	//print out the length
+	printf("The length of the linked list is %d\n", length);
+} */
 
