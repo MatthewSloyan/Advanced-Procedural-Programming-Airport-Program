@@ -20,12 +20,15 @@ struct node
 void addPassengerAtStart(struct node** top);
 void addPassengerAtEnd(struct node* top);
 void displayAllPassenger(struct node* top);
-void deletePassengerAtStart(struct node** top);
-void deletePassengerAtEnd(struct node* top);
 
 int searchList(struct node* top);
+int searchListByPassport(struct node* top);
 void searchDisplayList(struct node* top, int passengerLocation);
 void updatePassenger(struct node* top, int passengerLocation);
+
+void deletePassengerAtStart(struct node** top);
+void deletePassengerAtEnd(struct node* top);
+void deletePassengerAtPos(struct node* top, int passengerLocation);
 int length(struct node* top);
 
 void printPassengersToFile(struct node* top, int length);
@@ -115,7 +118,7 @@ void main()
 				//allow the user to enter a selection from the menu (intitial read)
 				printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 				printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
-				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of UK & Europe\n");
+				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK & Europe\n");
 				printf(" [0] To Exit\n");
 				scanf("%d", &userSelection);
 
@@ -159,7 +162,7 @@ void main()
 						location = searchList(headPtr);
 
 						if (location == 0) {
-							printf("\nPassenger not found, please try again\n");
+							printf("\nPassenger not found, please try again.");
 						}
 						else {
 							searchDisplayList(headPtr, location);
@@ -175,16 +178,42 @@ void main()
 						location = searchList(headPtr);
 
 						if (location == 0) {
-							printf("\nPassenger not found, please try again\n");
+							printf("\nPassenger not found, please try again.");
 						}
 						else {
 							updatePassenger(headPtr, location);
 						}
 					}
 					break;
-					break;
 				case 5:
-					//readPassengersFromFile(headPtr, &headPtr);
+					if (headPtr == NULL)
+					{
+						printf("Sorry the list is empty");
+					}
+
+					else
+					{
+						location = searchListByPassport(headPtr);
+						if (location == 0) {
+							printf("\nPassenger not found, please try again.");
+						}
+						else {
+							printf("\nDeleting Passenger %d", location);
+
+							if (location < 2)
+							{
+								deletePassengerAtStart(&headPtr);
+							}
+							else if (location >= 2 && location < length(headPtr))
+							{
+								deletePassengerAtPos(headPtr, location);
+							}
+							else
+							{
+								deletePassengerAtEnd(headPtr);
+							}
+						}
+					} //outer else
 					break;
 				case 6:
 					
@@ -215,7 +244,7 @@ void main()
 				{
 					printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 					printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
-					printf(" [7] Print all passenger details to report file\n [8] List all the passenger of UK & Europe\n");
+					printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK & Europe\n");
 					printf(" [0] To Exit\n");
 					scanf("%d", &userSelection);
 
@@ -446,6 +475,44 @@ int searchList(struct node* top)
 	return passengerNumFinal;
 }
 
+//function to search a specific element in a list by passport and return the location
+int searchListByPassport(struct node* top)
+{
+	struct node* curr;
+	int userInput;
+	int passengerNum = 0;
+	int passengerNumFinal = 0;
+	int found = 0;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	//ask the user to input a value
+	printf("\nPlease enter the passport number to search by\n");
+	scanf("%d", &userInput);
+
+	//while the current pointer is not equal to null continue through the list
+	while (curr != NULL)
+	{
+		passengerNum++;
+
+		//if the value is found print out the value, location and exit the loop
+		if (userInput == curr->passportNum) {
+			curr = curr->NEXT;
+			found = 1;
+			break;
+		}
+
+		//move curr to the next pointer
+		curr = curr->NEXT;
+	}
+
+	if (found == 1) {
+		passengerNumFinal = passengerNum;
+	}
+	return passengerNumFinal;
+}
+
 //function to print out the node at the given location
 void searchDisplayList(struct node* top, int passengerLocation)
 {
@@ -474,6 +541,7 @@ void searchDisplayList(struct node* top, int passengerLocation)
 	printf("Duration: %d\n", curr->journeyTime);
 }
 
+//function to update a passengers details based on a search for their name or passport number
 void updatePassenger(struct node* top, int passengerLocation) {
 	struct node* curr;
 	int i;
@@ -515,6 +583,53 @@ void updatePassenger(struct node* top, int passengerLocation) {
 		printf("\nOn average how long is your duration:\n [1] One Day\n [2] Less than 3 days\n [3] Less than 7 days\n [4] More than 7 days\n");
 		scanf("%d", &curr->journeyTime);
 	} while (curr->journeyTime < 1 || curr->journeyTime > 4);
+}
+
+//function to delete a passenger at the start of the linked list
+void deletePassengerAtStart(struct node** top)
+{
+	struct node* temp;
+
+	temp = *top;
+	*top = temp->NEXT;
+	free(temp);
+}
+
+//function to delete a passenger at the end of the linked list
+void deletePassengerAtEnd(struct node* top)
+{
+	struct node* curr;
+	struct node* prev_curr;
+
+	curr = top;
+
+	while (curr->NEXT != NULL)
+	{
+		prev_curr = curr;
+		curr = curr->NEXT;
+	}
+
+	prev_curr->NEXT = NULL;
+	free(curr);
+}
+
+//function to delete a passenger based on a search for their passport number
+void deletePassengerAtPos(struct node* top, int passengerLocation)
+{
+	struct node* curr;
+	struct node* prev_curr;
+	int i;
+
+	curr = top;
+
+	for (i = 0; i < passengerLocation - 1; i++)
+	{
+		prev_curr = curr;
+		curr = curr->NEXT;
+	}
+
+	prev_curr->NEXT = curr->NEXT;
+	free(curr);
 }
 
 //function to print all passengers to file
@@ -613,8 +728,7 @@ void readPassengersFromFile(struct node** top) {
 				newNode->NEXT = NULL;
 			}
 		}
-
-	fclose(filep); //close the file
+		fclose(filep); //close the file
 
 	} //else
 }
@@ -637,4 +751,3 @@ int length(struct node* top)
 
 	return length;
 }
-
