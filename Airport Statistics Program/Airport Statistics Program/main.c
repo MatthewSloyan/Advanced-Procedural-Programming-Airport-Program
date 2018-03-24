@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<conio.h>
 
 struct node
 {
@@ -25,10 +26,15 @@ void deletePassengerAtEnd(struct node* top);
 int searchList(struct node* top);
 void searchDisplayList(struct node* top, int passengerLocation);
 void updatePassenger(struct node* top, int passengerLocation);
+int length(struct node* top);
+
+void printPassengersToFile(struct node* top, int length);
+void readPassengersFromFile(struct node** top);
+
+FILE* filep;
 
 void main()
 { 
-	FILE* filep;
 	struct node* headPtr = NULL;
 	int pos;
 	int userSelection = 0;
@@ -43,6 +49,7 @@ void main()
 	int found = 0;
 	int location = 0;
 	int compare;
+	int lengthOfList = 0;
 
 	printf("XYZ Airport Ltd\n");
 	printf("===============\n\n");
@@ -100,12 +107,15 @@ void main()
 			//print greeting message when access is granted
 			printf("\n\nAccess granted, hello %s!", userNameInput); */
 
+			//READ IN FROM FILE ====================
+			readPassengersFromFile(&headPtr);
+
 			do
 			{
 				//allow the user to enter a selection from the menu (intitial read)
 				printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 				printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
-				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK & Europe\n");
+				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of UK & Europe\n");
 				printf(" [0] To Exit\n");
 				scanf("%d", &userSelection);
 
@@ -174,13 +184,21 @@ void main()
 					break;
 					break;
 				case 5:
-					
+					//readPassengersFromFile(headPtr, &headPtr);
 					break;
 				case 6:
 					
 					break;
 				case 7:
-					
+					if (headPtr == NULL)
+					{
+						printf("Error, the list is empty. Please add a passenger and try again.");
+					}
+					else {
+						printf("\nPrinting to file =========\n");
+						lengthOfList = length(headPtr);
+						printPassengersToFile(headPtr, lengthOfList);
+					}
 					break;
 				case 8:
 					
@@ -197,7 +215,7 @@ void main()
 				{
 					printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 					printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
-					printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK & Europe\n");
+					printf(" [7] Print all passenger details to report file\n [8] List all the passenger of UK & Europe\n");
 					printf(" [0] To Exit\n");
 					scanf("%d", &userSelection);
 
@@ -207,6 +225,10 @@ void main()
 
 				} while (userSelection < 0 || userSelection > 8);
 			} //while
+
+			//once the program is exited all the linked list data is printed to a file.
+			lengthOfList = length(headPtr);
+			printPassengersToFile(headPtr, lengthOfList);
 		} //if found
 
 		//if user not found output error message
@@ -495,8 +517,110 @@ void updatePassenger(struct node* top, int passengerLocation) {
 	} while (curr->journeyTime < 1 || curr->journeyTime > 4);
 }
 
+//function to print all passengers to file
+void printPassengersToFile(struct node* top, int length)
+{
+	struct node* curr;
+
+	curr = top;
+
+	filep = fopen("passenger.txt", "w");
+
+	if (filep == NULL)
+	{
+		printf("The file could not be opened to write\n");
+	}
+
+	else
+	{
+		fprintf(filep, "%d\n", length);
+
+		while (curr != NULL)
+		{
+			//print out the data to file
+			fprintf(filep, "%d\n", curr->passportNum);
+			fprintf(filep, "%s\n", curr->firstName);
+			fprintf(filep, "%s\n", curr->secondName);
+			fprintf(filep, "%d\n", curr->dob);
+			fprintf(filep, "%s\n", curr->emailAddress);
+			fprintf(filep, "%d\n", curr->countryTraveledFrom);
+			fprintf(filep, "%d\n", curr->travelClass);
+			fprintf(filep, "%d\n", curr->tripsPerYear);
+			fprintf(filep, "%d\n", curr->journeyTime);
+
+			//set the curr pointer to the next pointer to move through linked list
+			curr = curr->NEXT;
+		}
+		fclose(filep); //close the file
+	}
+}
+
+void readPassengersFromFile(struct node** top) {
+
+	struct node* curr;
+	struct node* newNode;
+	int i;
+	int length = 0;
+
+	//open the that the player has entered if found
+	filep = fopen("passenger.txt", "r");
+
+	if (filep == NULL)
+	{
+		printf("The file cannot be opened\n");
+	}
+
+	else
+	{
+		//read in the length of the list
+		fscanf(filep, "%d", &length);
+
+		//scan in the each players cards into array
+		for (i = 0; i < length; i++)
+		{
+			newNode = (struct node*)malloc(sizeof(struct node));
+
+			//read in the passenger details from the file
+			fscanf(filep, "%d", &newNode->passportNum);
+			fscanf(filep, "%s", newNode->firstName);
+			fscanf(filep, "%s", newNode->secondName);
+			fscanf(filep, "%d", &newNode->dob);
+			fscanf(filep, "%s", newNode->emailAddress);
+			fscanf(filep, "%d", &newNode->countryTraveledFrom);
+			fscanf(filep, "%d", &newNode->travelClass);
+			fscanf(filep, "%d", &newNode->tripsPerYear);
+			fscanf(filep, "%d", &newNode->journeyTime);
+
+			if (i == 0) {
+				//set newNode->NEXT to the headpointer
+				newNode->NEXT = *top;
+				//set the head pointer to the newNode
+				*top = newNode;
+
+				// set curr to the headpointer NULL
+				curr = *top;
+			}
+			else {
+				//loop through till you find the last node
+				while (curr->NEXT != NULL)
+				{
+					curr = curr->NEXT;
+				}
+
+				//set curr->NEXT to the new node
+				curr->NEXT = newNode;
+				//set newNode->NEXT pointer to NULL to signify the end of the list
+				newNode->NEXT = NULL;
+			}
+		}
+
+	fclose(filep); //close the file
+
+	} //else
+}
+
 //function to get the length of the linked list
-/*void length(struct node* top)
+int length(struct node* top)
 {
 	struct node* curr;
 	int length = 0;
@@ -511,7 +635,6 @@ void updatePassenger(struct node* top, int passengerLocation) {
 		curr = curr->NEXT; //move curr to the next pointer
 	}
 
-	//print out the length
-	printf("The length of the linked list is %d\n", length);
-} */
+	return length;
+}
 
