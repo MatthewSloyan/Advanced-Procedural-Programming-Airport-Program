@@ -1,0 +1,56 @@
+
+Economy ===========
+UK:	          0.00%
+Europe:	          0.00%
+Asia:	         12.50%
+America:          0.00%
+AustAsia          0.00%
+= 1 Day:          0.00%
+< 3 Days:         0.00%
+< 7 Days:        12.50%
+> 7 Days:         0.00%
+
+Premium Economy ===========
+UK:	         12.50%
+Europe:	          0.00%
+Asia:	         12.50%
+America:         12.50%
+AustAsia          0.00%
+= 1 Day:          0.00%
+< 3 Days:         0.00%
+< 7 Days:        12.50%
+> 7 Days:        25.00%
+
+Business Class ===========
+UK:	          0.00%
+Europe:	          0.00%
+Asia:	          0.00%
+America:          0.00%
+AustAsia         25.00%
+= 1 Day:          0.00%
+< 3 Days:         0.00%
+< 7 Days:        12.50%
+> 7 Days:        12.50%
+
+First Class ===========
+UK:	          0.00%
+Europe:	         25.00%
+Asia:	          0.00%
+America:          0.00%
+AustAsia          0.00%
+= 1 Day:          0.00%
+< 3 Days:        25.00%
+< 7 Days:         0.00%
+> 7 Days:         0.00%
+
+
+Born before 1980 ========
+UK:	         12.50%
+Europe:	          0.00%
+Asia:	         12.50%
+America:          0.00%
+AustAsia         25.00%
+= 1 Day:          0.00%
+< 3 Days:         0.00%
+< 7 Days:        37.50%
+> 7 Days:        12.50%

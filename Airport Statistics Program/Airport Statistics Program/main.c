@@ -21,6 +21,9 @@ void addPassengerAtStart(struct node** top);
 void addPassengerAtEnd(struct node* top);
 void displayAllPassenger(struct node* top);
 
+void readPassengersFromFile(struct node** top);
+void printPassengersToFile(struct node* top, int length);
+
 int searchList(struct node* top);
 int searchListByPassport(struct node* top);
 void searchDisplayList(struct node* top, int passengerLocation);
@@ -34,11 +37,12 @@ void generateStats(struct node* top, int selection, int length);
 void countCountryStats(int travelClass, int travelFrom, int selection, int pos);
 void countDuration(int travelClass, int duration, int selection, int pos);
 void printStatsToConsole(int selection);
-void printStatsToFile(int selection);
+void printStatsToFile();
 int length(struct node* top);
 
-void printPassengersToFile(struct node* top, int length);
-void readPassengersFromFile(struct node** top);
+int copyLinkedList(struct node* top, struct node** topTwo);
+void sortByDOB(struct node *top);
+void swapValues(struct node *valueOne, struct node *valueTwo);
 
 //global variables
 FILE* filep;
@@ -54,6 +58,8 @@ const char *countries[] = { "UK:\t ","Europe:\t ","Asia:\t ","America: ","AustAs
 void main()
 { 
 	struct node* headPtr = NULL;
+	struct node* headPtr2 = NULL;
+
 	int pos;
 	int userSelection = 0;
 	int statisticsSelection = 0;
@@ -69,6 +75,7 @@ void main()
 	int location = 0;
 	int compare;
 	int lengthOfList = 0;
+	int ifCopied = 0;
 
 	printf("XYZ Airport Ltd\n");
 	printf("===============\n\n");
@@ -259,13 +266,23 @@ void main()
 						printf("\nPrinting to file =========\n");
 						lengthOfList = length(headPtr);
 						printPassengersToFile(headPtr, lengthOfList);
+
+						printStatsToFile();
 					}
 					break;
 				case 8:
-					
-					break;
-				case 9:
-					
+					if (headPtr == NULL)
+					{
+						printf("Error, the list is empty. Please add a passenger and try again.");
+					}
+					else {
+						if (ifCopied == 0) {
+							ifCopied = copyLinkedList(headPtr, &headPtr2);
+
+							sortByDOB(headPtr2);
+						}
+						displayAllPassenger(headPtr2);
+					}
 					break;
 				default:
 					printf("Invalid option\n");
@@ -794,20 +811,14 @@ void generateStats(struct node* top, int selection, int length) {
 
 	curr = top;
 
-	//initalize the arrays to zero or back to 0
-	for (i = 0; i < 36; i++)
-	{
-		finalStatOne[i] = 0;
-		countedStatsOne[i] = 0;
-	}
-
-	for (i = 0; i < 10; i++)
-	{
-		finalStatTwo[i] = 0;
-		countedStatsTwo[i] = 0;
-	}
-
 	if (selection == 1) {
+		//initalize the arrays to zero or back to 0
+		for (i = 0; i < 36; i++)
+		{
+			finalStatOne[i] = 0;
+			countedStatsOne[i] = 0;
+		}
+
 		while (curr != NULL)
 		{
 			for (i = 0; i < 4; i++)
@@ -835,6 +846,12 @@ void generateStats(struct node* top, int selection, int length) {
 		printStatsToConsole(1);
 	}
 	else {
+		//initalize the arrays to zero or back to 0
+		for (i = 0; i < 10; i++)
+		{
+			finalStatTwo[i] = 0;
+			countedStatsTwo[i] = 0;
+		}
 
 		while (curr != NULL)
 		{
@@ -898,7 +915,7 @@ void countDuration(int travelClass, int duration, int selection, int pos) {
 		else if (duration == 2)
 			countedStatsOne[pos + 1]++;
 		else if (duration == 3)
-			countedStatsOne[pos + 2]++;
+			countedStatsOne[pos + 2]++; 
 		else
 			countedStatsOne[pos + 3]++;
 	}
@@ -935,7 +952,170 @@ void printStatsToConsole(int selection) {
 }
 
 //function to print the statistics to a file
-void printStatsToFile(int selection) {
+void printStatsToFile() {
+	int i;
+	int pos = 0;
+	int counter = 0;
 
-	
+	filep = fopen("passengerStatistics.txt", "w");
+
+	if (filep == NULL)
+	{
+		printf("The file could not be opened to write\n");
+	}
+
+	else
+	{
+		for (i = 0; i < 36; i++)
+		{
+			if (i == 0 || i == 9 || i == 18 || i == 27) {
+				fprintf(filep, "\n%s ===========\n", classes[pos]);
+				pos++;
+			}
+			fprintf(filep, "%s %12.2f%%\n", countries[counter], finalStatOne[i]);
+			counter++;
+
+			if (counter == 9) {
+				counter = 0;
+			}
+		}
+
+		fprintf(filep, "\n\nBorn before 1980 ========\n");
+		for (i = 0; i < 9; i++)
+		{
+			fprintf(filep, "%s %12.2f%%\n", countries[i], finalStatTwo[i]);
+		}
+
+		fclose(filep); //close the file
+	}
+}
+
+int copyLinkedList(struct node* top, struct node** topTwo)
+{
+	struct node* curr;
+	struct node* currTwo;
+	struct node* newNode;
+
+	int pos = 0;
+	int ifDone = 0;
+
+	curr = top;
+
+	while (curr != NULL)
+	{
+		newNode = (struct node*)malloc(sizeof(struct node));
+
+		newNode->passportNum = curr->passportNum;
+		strcpy(newNode->firstName, curr->firstName);
+		strcpy(newNode->secondName, curr->secondName);
+		newNode->dob = curr->dob;
+		strcpy(newNode->emailAddress, curr->emailAddress);
+		newNode->countryTraveledFrom = curr->countryTraveledFrom;
+		newNode->travelClass = curr->travelClass;
+		newNode->tripsPerYear = curr->tripsPerYear;
+		newNode->journeyTime = curr->journeyTime;
+
+		if (pos == 0) {
+			//set newNode->NEXT to the headpointer
+			newNode->NEXT = *topTwo;
+			//set the head pointer to the newNode
+			*topTwo = newNode;
+
+			// set curr to the headpointer NULL
+			currTwo = *topTwo;
+		}
+		else {
+			//loop through till you find the last node
+			while (currTwo->NEXT != NULL)
+			{
+				currTwo = currTwo->NEXT;
+			}
+
+			//set curr->NEXT to the new node
+			currTwo->NEXT = newNode;
+			//set newNode->NEXT pointer to NULL to signify the end of the list
+			newNode->NEXT = NULL;
+		}
+
+		//set the curr pointer to the next pointer to move through linked list
+		pos++;
+		ifDone = 1;
+		curr = curr->NEXT;
+	}
+	return ifDone;
+}
+
+/* Bubble sort the given linked lsit */
+void sortByDOB(struct node *top)
+{
+	int swapCondition, i;
+	struct node *curr;
+	struct node *prev = NULL;
+
+	do
+	{
+		swapCondition = 0;
+		curr = top;
+
+		while (curr->NEXT != prev)
+		{
+			if (curr->dob > curr->NEXT->dob)
+			{
+				swapValues(curr, curr->NEXT);
+				swapCondition = 1;
+			}
+			curr = curr->NEXT;
+		}
+		prev = curr;
+	} while (swapCondition);
+}
+
+/* function to swap data of two nodes a and b*/
+void swapValues(struct node *valueOne, struct node *valueTwo)
+{
+	int tempPassportNum;
+	char tempFirstName[30];
+	char tempSecondName[25];
+	int tempDob;
+	char tempEmailAddress[50];
+	int tempCountryTraveledFrom;
+	int tempTravelClass;
+	int tempTripsPerYear;
+	int tempJourneyTime;
+
+	tempPassportNum = valueOne->passportNum;
+	valueOne->passportNum = valueTwo->passportNum;
+	valueTwo->passportNum = tempPassportNum;
+
+	strcpy(tempFirstName, valueOne->firstName);
+	strcpy(valueOne->firstName, valueTwo->firstName);
+	strcpy(valueTwo->firstName, tempFirstName);
+
+	strcpy(tempSecondName, valueOne->secondName);
+	strcpy(valueOne->secondName, valueTwo->secondName);
+	strcpy(valueTwo->secondName, tempSecondName);
+
+	tempDob = valueOne->dob;
+	valueOne->dob = valueTwo->dob;
+	valueTwo->dob = tempDob;
+
+	strcpy(tempEmailAddress, valueOne->emailAddress);
+	strcpy(valueOne->emailAddress, valueTwo->emailAddress);
+	strcpy(valueTwo->emailAddress, tempEmailAddress);
+
+	tempCountryTraveledFrom = valueOne->countryTraveledFrom;
+	valueOne->countryTraveledFrom = valueTwo->countryTraveledFrom;
+	valueTwo->countryTraveledFrom = tempCountryTraveledFrom;
+
+	tempTravelClass = valueOne->travelClass;
+	valueOne->travelClass = valueTwo->travelClass;
+	valueTwo->travelClass = tempTravelClass;
+
+	tempTripsPerYear = valueOne->tripsPerYear;
+	valueOne->tripsPerYear = valueTwo->tripsPerYear;
+	valueTwo->tripsPerYear = tempTripsPerYear;
+
+	tempJourneyTime = valueOne->journeyTime;
+	valueOne->journeyTime = valueTwo->journeyTime;
+	valueTwo->journeyTime = tempJourneyTime;
 }
