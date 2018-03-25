@@ -29,18 +29,34 @@ void updatePassenger(struct node* top, int passengerLocation);
 void deletePassengerAtStart(struct node** top);
 void deletePassengerAtEnd(struct node* top);
 void deletePassengerAtPos(struct node* top, int passengerLocation);
+
+void generateStats(struct node* top, int selection, int length);
+void countCountryStats(int travelClass, int travelFrom, int selection, int pos);
+void countDuration(int travelClass, int duration, int selection, int pos);
+void printStatsToConsole(int selection);
+void printStatsToFile(int selection);
 int length(struct node* top);
 
 void printPassengersToFile(struct node* top, int length);
 void readPassengersFromFile(struct node** top);
 
+//global variables
 FILE* filep;
+int countedStatsOne[37];
+float finalStatOne[37];
+
+int countedStatsTwo[10];
+float finalStatTwo[10];
+
+const char *classes[] = { "Economy","Premium Economy","Business Class", "First Class"};
+const char *countries[] = { "UK:\t ","Europe:\t ","Asia:\t ","America: ","AustAsia ", "= 1 Day: ", "< 3 Days:", "< 7 Days:", "> 7 Days:"};
 
 void main()
 { 
 	struct node* headPtr = NULL;
 	int pos;
 	int userSelection = 0;
+	int statisticsSelection = 0;
 	char userNameInput[30];
 	char passwordInput[15];
 	char passwordChar = ' ';
@@ -118,7 +134,7 @@ void main()
 				//allow the user to enter a selection from the menu (intitial read)
 				printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 				printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
-				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK & Europe\n");
+				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK in order of DOB\n");
 				printf(" [0] To Exit\n");
 				scanf("%d", &userSelection);
 
@@ -186,6 +202,7 @@ void main()
 					}
 					break;
 				case 5:
+					//delete a passenger selection
 					if (headPtr == NULL)
 					{
 						printf("Sorry the list is empty");
@@ -216,9 +233,24 @@ void main()
 					} //outer else
 					break;
 				case 6:
-					
+					//generate statistics selection
+					do
+					{
+						//allow the user to enter a selection from the menu (intitial read)
+						printf("\n\nPlease select an option to generate statistics by\n [1] Travel Class\n [2] Born before 1980\n");
+						scanf("%d", &statisticsSelection);
+
+						if (statisticsSelection < 1 || statisticsSelection > 2) {
+							printf("\nError! The value entered must be either 1 or 2, please try again.");
+						}
+
+					} while (statisticsSelection < 1 || statisticsSelection > 2);
+
+					lengthOfList = length(headPtr);
+					generateStats(headPtr, statisticsSelection, lengthOfList);
 					break;
 				case 7:
+					//print passengers to file selection
 					if (headPtr == NULL)
 					{
 						printf("Error, the list is empty. Please add a passenger and try again.");
@@ -244,7 +276,7 @@ void main()
 				{
 					printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 					printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
-					printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK & Europe\n");
+					printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK in order of DOB\n");
 					printf(" [0] To Exit\n");
 					scanf("%d", &userSelection);
 
@@ -750,4 +782,160 @@ int length(struct node* top)
 	}
 
 	return length;
+}
+
+//function to generate the statistics based on the user input
+void generateStats(struct node* top, int selection, int length) {
+
+	struct node* curr;
+	int passengerNum = 0;
+	int i;
+	int posCounter = 5;
+
+	curr = top;
+
+	//initalize the arrays to zero or back to 0
+	for (i = 0; i < 36; i++)
+	{
+		finalStatOne[i] = 0;
+		countedStatsOne[i] = 0;
+	}
+
+	for (i = 0; i < 10; i++)
+	{
+		finalStatTwo[i] = 0;
+		countedStatsTwo[i] = 0;
+	}
+
+	if (selection == 1) {
+		while (curr != NULL)
+		{
+			for (i = 0; i < 4; i++)
+			{
+				countCountryStats(curr->travelClass, curr->countryTraveledFrom, i + 1, i*9);
+			}
+
+			/*for (i = 0; i < 4; i++)
+			{
+				countDuration(curr->travelClass, curr->journeyTime, i + 1, posCounter);
+			}*/
+			countDuration(curr->travelClass, curr->journeyTime, 1, 5);
+			countDuration(curr->travelClass, curr->journeyTime, 2, 14);
+			countDuration(curr->travelClass, curr->journeyTime, 3, 23);
+			countDuration(curr->travelClass, curr->journeyTime, 4, 32);
+			
+			curr = curr->NEXT;
+		}
+
+		for (i = 0; i < 36; i++)
+		{
+			finalStatOne[i] = (float)countedStatsOne[i] / length * 100;
+		}
+
+		printStatsToConsole(1);
+	}
+	else {
+
+		while (curr != NULL)
+		{
+			if (curr->dob < 1980) {
+
+				if (curr->countryTraveledFrom == 1)
+					countedStatsTwo[0]++;
+				else if (curr->countryTraveledFrom == 2)
+					countedStatsTwo[1]++;
+				else if (curr->countryTraveledFrom == 3)
+					countedStatsTwo[2]++;
+				else if (curr->countryTraveledFrom == 4)
+					countedStatsTwo[3]++;
+				else
+					countedStatsTwo[4]++;
+
+				if (curr->journeyTime == 1)
+					countedStatsTwo[5]++;
+				else if (curr->journeyTime == 2)
+					countedStatsTwo[6]++;
+				else if (curr->journeyTime == 3)
+					countedStatsTwo[7]++;
+				else
+					countedStatsTwo[8]++;
+			}
+
+			curr = curr->NEXT;
+		}
+
+		for (i = 0; i < 9; i++)
+		{
+			finalStatTwo[i] = (float)countedStatsTwo[i] / length * 100;
+		}
+
+		printStatsToConsole(2);
+	}
+}
+
+void countCountryStats(int travelClass, int travelFrom, int selection, int pos) {
+
+	if (travelClass == selection) {
+		if (travelFrom == 1)
+			countedStatsOne[pos]++;
+		else if (travelFrom == 2)
+			countedStatsOne[pos + 1]++;
+		else if (travelFrom == 3)
+			countedStatsOne[pos + 2]++;
+		else if (travelFrom == 4)
+			countedStatsOne[pos + 3]++;
+		else
+			countedStatsOne[pos + 4]++;
+	}
+}
+
+//function to count each class or year born and which country they traveled to.
+void countDuration(int travelClass, int duration, int selection, int pos) {
+
+	if (travelClass == selection) {
+		if (duration == 1)
+			countedStatsOne[pos]++;
+		else if (duration == 2)
+			countedStatsOne[pos + 1]++;
+		else if (duration == 3)
+			countedStatsOne[pos + 2]++;
+		else
+			countedStatsOne[pos + 3]++;
+	}
+}
+
+//function to print the statistics option One
+void printStatsToConsole(int selection) {
+	int i;
+	int pos = 0;
+	int counter = 0;
+
+	if (selection == 1) {
+		for (i = 0; i < 36; i++)
+		{
+			if (i == 0 || i == 9 || i == 18 || i == 27) {
+				printf("\n%s ===========\n", classes[pos]);
+				pos++;
+			}
+			printf("%s %12.2f%%\n", countries[counter], finalStatOne[i]);
+			counter++;
+
+			if (counter == 9) {
+				counter = 0;
+			}
+		}
+	}
+	else {
+		printf("\nBorn before 1980 ========\n");
+		for (i = 0; i < 9; i++)
+		{
+			printf("%s %12.2f%%\n", countries[i], finalStatTwo[i]);
+		}
+	}
+}
+
+//function to print the statistics to a file
+void printStatsToFile(int selection) {
+
+	
 }
