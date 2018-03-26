@@ -20,12 +20,15 @@ struct node
 void addPassengerAtStart(struct node** top);
 void addPassengerAtEnd(struct node* top);
 void displayAllPassenger(struct node* top);
+void getPassengerStatNames(int choice[6], char *statNames[6]);
+void isEmailValid(struct node* top);
 
 void readPassengersFromFile(struct node** top);
 void printPassengersToFile(struct node* top, int length);
 
 int searchList(struct node* top);
-int searchListByPassport(struct node* top);
+void searchListByPassport(struct node* top, int locationFoundArray[2], int userInput);
+
 void searchDisplayList(struct node* top, int passengerLocation);
 void updatePassenger(struct node* top, int passengerLocation);
 
@@ -76,6 +79,9 @@ void main()
 	int compare;
 	int lengthOfList = 0;
 	int ifCopied = 0;
+	int userInput;
+
+	int locationFound[2];
 
 	printf("XYZ Airport Ltd\n");
 	printf("===============\n\n");
@@ -217,27 +223,35 @@ void main()
 
 					else
 					{
-						location = searchListByPassport(headPtr);
-						if (location == 0) {
+						locationFound[0] = 0;
+						locationFound[1] = 0;
+
+						//ask the user to input a value
+						printf("\nPlease enter the passport number to search by\n");
+						scanf("%d", &userInput);
+
+						searchListByPassport(headPtr, locationFound, userInput);
+
+						if (locationFound[0] == 0) {
 							printf("\nPassenger not found, please try again.");
 						}
 						else {
-							printf("\nDeleting Passenger %d", location);
+							printf("\nDeleting Passenger %d", locationFound[0]);
 
-							if (location < 2)
+							if (locationFound[0] < 2)
 							{
 								deletePassengerAtStart(&headPtr);
 							}
-							else if (location >= 2 && location < length(headPtr))
+							else if (locationFound[0] >= 2 && locationFound[0] < length(headPtr))
 							{
-								deletePassengerAtPos(headPtr, location);
+								deletePassengerAtPos(headPtr, locationFound[0]);
 							}
 							else
 							{
 								deletePassengerAtEnd(headPtr);
 							}
 						}
-					} //outer else
+					} //outer else 
 					break;
 				case 6:
 					//generate statistics selection
@@ -326,7 +340,7 @@ void addPassengerAtStart(struct node** top)
 
 	printf("\nAdding to the start of the list:\n");
 
-	//ask the user to input values
+	//no need to validate as the first node is always going to be unique 
 	printf("\nPlease enter your passport number:\n");
 	scanf("%d", &newNode->passportNum);
 
@@ -336,11 +350,13 @@ void addPassengerAtStart(struct node** top)
 	printf("\nPlease enter your Last Name:\n");
 	scanf("%s", newNode->secondName);
 
-	printf("\nPlease enter the year you were born (E.g 1990):\n");
-	scanf("%d", &newNode->dob);
+	do
+	{
+		printf("\nPlease enter the year you were born (E.g 1990) It must be between 1920 and 2018.:\n");
+		scanf("%d", &newNode->dob);
+	} while (newNode->dob < 1920 || newNode->dob > 2018);
 
-	printf("\nPlease enter your email Address:\n");
-	scanf("%s", newNode->emailAddress);
+	isEmailValid(newNode);
 
 	do
 	{
@@ -377,13 +393,27 @@ void addPassengerAtEnd(struct node* top)
 	struct node* curr;
 	struct node* newNode;
 
+	int locationFound[2];
+
 	newNode = (struct node*)malloc(sizeof(struct node));
 
 	printf("\nAdding to the end of the list:\n");
 
 	//ask the user to input values
-	printf("\nPlease enter your passport number:\n");
-	scanf("%d", &newNode->passportNum);
+	do
+	{
+		printf("\nPlease enter your passport number:\n");
+		scanf("%d", &newNode->passportNum);
+
+		//intitalize to 0
+		locationFound[1] = 0;
+
+		searchListByPassport(top, locationFound, newNode->passportNum);
+
+		if (locationFound[1] == 1) {
+			printf("Error! The passport number entered must be unique, please try again\n");
+		}
+	} while (locationFound[1] == 1);
 
 	printf("\nPlease enter your First Name:\n");
 	scanf("%s", newNode->firstName);
@@ -391,11 +421,13 @@ void addPassengerAtEnd(struct node* top)
 	printf("\nPlease enter your Last Name:\n");
 	scanf("%s", newNode->secondName);
 
-	printf("\nPlease enter the year you were born (E.g 1990):\n");
-	scanf("%d", &newNode->dob);
+	do
+	{
+		printf("\nPlease enter the year you were born (E.g 1990) It must be between 1920 and 2018.:\n");
+		scanf("%d", &newNode->dob);
+	} while (newNode->dob < 1920 || newNode->dob > 2018);
 
-	printf("\nPlease enter your email Address:\n");
-	scanf("%s", newNode->emailAddress);
+	isEmailValid(newNode);
 
 	do
 	{
@@ -436,49 +468,158 @@ void addPassengerAtEnd(struct node* top)
 	newNode->NEXT = NULL;
 }
 
+void isEmailValid(struct node* top) {
+
+	int n = 0;
+	int foundFullStop = 0;
+	int foundAtSymbol = 0;
+	int foundDotCom = 0;
+	int foundAll = 0;
+	char *returnedValue;
+
+	do
+	{
+		printf("\nPlease enter your email Address (Must contain a @, full stop and .com):\n");
+		scanf("%s", top->emailAddress);
+
+		foundFullStop = 0;
+		foundAtSymbol = 0;
+		foundDotCom = 0;
+
+		n = 0;
+		while (top->emailAddress[n] != '\0') {
+			if (top->emailAddress[n] == '.') {
+				foundFullStop = 1;
+			}
+			n++;
+		}
+
+		n = 0;
+		while (top->emailAddress[n] != '\0') {
+			if (top->emailAddress[n] == '@') {
+				foundAtSymbol = 1;
+			}
+			n++;
+		}
+
+		returnedValue = strstr(top->emailAddress, ".com");
+
+		if (returnedValue) {
+			foundDotCom = 1;
+		}
+
+		if (foundFullStop == 1) {
+			if (foundAtSymbol == 1) {
+				if (foundDotCom == 1) {
+					foundAll = 1;
+				}
+			}
+		}
+	} while (foundAll == 0);
+}
+
 void displayAllPassenger(struct node* top)
 {
 	struct node* curr;
 	int passengerNum = 0;
-	//char countryTraveledFromOutput[30];
-	//char countryTraveledToOutput[30];
-	//char tripsPerYearOutput[30];
-	//char journeyTimeOutput[30];
+	int i;
 
 	curr = top;
 
-	/*switch (curr->countryTraveledFrom)
+	int choices[6];
+	char *values[6] = {'\0'};
+
+	//initalize to 0
+	for (i = 0; i < 6; i++)
 	{
-	case 1:
-		countryTraveledFromOutput = "UK";
-		break;
-	case 2:
-		
-		break;
-	case 3:
-
-		break;
-	case 4:
-
-		break;
-	default:
-		
-	} */
+		choices[i] = 0;
+		values[i] = " ";
+	}
 
 	while (curr != NULL)
 	{
+		choices[0] = curr->countryTraveledFrom;
+		choices[1] = curr->travelClass;
+		choices[2] = curr->tripsPerYear;
+		choices[3] = curr->journeyTime;
+
+		getPassengerStatNames(choices, values);
+
 		printf("\nPASSENGER %d\n===========\n", passengerNum + 1);
 
-		printf("Passport Num: %d\n", curr->passportNum);
-		printf("Name: %s %s\n", curr->firstName, curr->secondName);
-		printf("DOB: %d\n", curr->dob);
-		printf("Email: %s\n", curr->emailAddress);
-		printf("Country traveled from: %d\n", curr->countryTraveledFrom);
-		printf("Travel Class: %d\n", curr->travelClass);
-		printf("Trips per year: %d\n", curr->tripsPerYear);
-		printf("Duration: %d\n", curr->journeyTime);
+		printf("Passport Num: \t\t%d\n", curr->passportNum);
+		printf("Name: \t\t\t%s %s\n", curr->firstName, curr->secondName);
+		printf("DOB: \t\t\t%d\n", curr->dob);
+		printf("Email: \t\t\t%s\n", curr->emailAddress);
+		printf("Country traveled from: \t%s\n", values[0]);
+		printf("Travel Class: \t\t%s\n", values[1]);
+		printf("Trips per year: \t%s\n", values[2]);
+		printf("Duration: \t\t%s\n", values[3]);
 		curr = curr->NEXT;
 		passengerNum++;
+	}
+}
+
+void getPassengerStatNames(int choice[6], char *statNames[6]) {
+
+	switch (choice[0])
+	{
+	case 1:
+		statNames[0] = "UK";
+		break;
+	case 2:
+		statNames[0] = "Rest of Europe";
+		break;
+	case 3:
+		statNames[0] = "Asia";
+		break;
+	case 4:
+		statNames[0] = "America";
+		break;
+	default:
+		statNames[0]= "Australasia";
+	}
+
+	switch (choice[1])
+	{
+	case 1:
+		statNames[1] = "Economy";
+		break;
+	case 2:
+		statNames[1] = "Premium Economy";
+		break;
+	case 3:
+		statNames[1] = "Business Class";
+		break;
+	default:
+		statNames[1] = "First Class";
+	}
+
+	switch (choice[2])
+	{
+	case 1:
+		statNames[2] = "< than 3 times per year";
+		break;
+	case 2:
+		statNames[2] = "< than 5 times per year";
+		break;
+	default:
+		statNames[2] = "> than 5 times per year";
+	}
+
+	switch (choice[3])
+	{
+	case 1:
+		statNames[3] = "One Day";
+		break;
+	case 2:
+		statNames[3] = "< than 3 days";
+		break;
+	case 3:
+		statNames[3] = "< than 5 days";
+		break;
+	default:
+		statNames[3] = "> than 7 days";
 	}
 }
 
@@ -525,20 +666,14 @@ int searchList(struct node* top)
 }
 
 //function to search a specific element in a list by passport and return the location
-int searchListByPassport(struct node* top)
+void searchListByPassport(struct node* top, int locationFoundArray[2], int userInput)
 {
 	struct node* curr;
-	int userInput;
 	int passengerNum = 0;
 	int passengerNumFinal = 0;
-	int found = 0;
 
 	//set the curr to the head pointer
 	curr = top;
-
-	//ask the user to input a value
-	printf("\nPlease enter the passport number to search by\n");
-	scanf("%d", &userInput);
 
 	//while the current pointer is not equal to null continue through the list
 	while (curr != NULL)
@@ -548,7 +683,7 @@ int searchListByPassport(struct node* top)
 		//if the value is found print out the value, location and exit the loop
 		if (userInput == curr->passportNum) {
 			curr = curr->NEXT;
-			found = 1;
+			locationFoundArray[1] = 1;
 			break;
 		}
 
@@ -556,10 +691,9 @@ int searchListByPassport(struct node* top)
 		curr = curr->NEXT;
 	}
 
-	if (found == 1) {
-		passengerNumFinal = passengerNum;
+	if (locationFoundArray[1] == 1) {
+		locationFoundArray[0] = passengerNum;
 	}
-	return passengerNumFinal;
 }
 
 //function to print out the node at the given location
@@ -568,8 +702,25 @@ void searchDisplayList(struct node* top, int passengerLocation)
 	struct node* curr;
 	int i;
 
+	int choices[6];
+	char *values[6] = { '\0' };
+
+	//initalize to 0
+	for (i = 0; i < 6; i++)
+	{
+		choices[i] = 0;
+		values[i] = " ";
+	}
+
 	//set the curr to the head pointer
 	curr = top;
+
+	choices[0] = curr->countryTraveledFrom;
+	choices[1] = curr->travelClass;
+	choices[2] = curr->tripsPerYear;
+	choices[3] = curr->journeyTime;
+
+	getPassengerStatNames(choices, values);
 
 	if (passengerLocation != 1) {
 		for (i = 0; i < passengerLocation - 1; i++)
@@ -579,15 +730,14 @@ void searchDisplayList(struct node* top, int passengerLocation)
 	}
 
 	printf("\nPASSENGER %d\n===========\n", passengerLocation);
-
-	printf("Passport Num: %d\n", curr->passportNum);
-	printf("Name: %s %s\n", curr->firstName, curr->secondName);
-	printf("DOB: %d\n", curr->dob);
-	printf("Email: %s\n", curr->emailAddress);
-	printf("Country traveled from: %d\n", curr->countryTraveledFrom);
-	printf("Travel Class: %d\n", curr->travelClass);
-	printf("Trips per year: %d\n", curr->tripsPerYear);
-	printf("Duration: %d\n", curr->journeyTime);
+	printf("Passport Num: \t\t%d\n", curr->passportNum);
+	printf("Name: \t\t\t%s %s\n", curr->firstName, curr->secondName);
+	printf("DOB: \t\t\t%d\n", curr->dob);
+	printf("Email: \t\t\t%s\n", curr->emailAddress);
+	printf("Country traveled from: \t%s\n", values[0]);
+	printf("Travel Class: \t\t%s\n", values[1]);
+	printf("Trips per year: \t%s\n", values[2]);
+	printf("Duration: \t\t%s\n", values[3]);
 }
 
 //function to update a passengers details based on a search for their name or passport number
@@ -1050,14 +1200,13 @@ void sortByDOB(struct node *top)
 {
 	int swapCondition, i;
 	struct node *curr;
-	struct node *prev = NULL;
 
 	do
 	{
 		swapCondition = 0;
 		curr = top;
 
-		while (curr->NEXT != prev)
+		while (curr->NEXT != NULL)
 		{
 			if (curr->dob > curr->NEXT->dob)
 			{
@@ -1066,7 +1215,6 @@ void sortByDOB(struct node *top)
 			}
 			curr = curr->NEXT;
 		}
-		prev = curr;
 	} while (swapCondition);
 }
 
