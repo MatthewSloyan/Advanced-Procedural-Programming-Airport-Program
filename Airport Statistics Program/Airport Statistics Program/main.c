@@ -1,8 +1,15 @@
+// 2nd Year Advanced Procedural Programming Airport Statistics Program
+// by Matthew Sloyan G00348036
+
+//Github Link:
+//https://github.com/MatthewSloyan/Advanced-Procedural-Programming-Airport-Program
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<conio.h>
 
+//declare the linked list struct
 struct node
 {
 	int passportNum;
@@ -17,8 +24,13 @@ struct node
 	struct node* NEXT;
 };
 
-void addPassengerAtStart(struct node** top);
-void addPassengerAtEnd(struct node* top);
+//function declaration
+void addPassengerAtStart(struct node** top, int passportNum);
+void addPassengerAtEnd(struct node* top, int passportNum);
+void addElementAtPos(struct node* top, int position, int passportNum);
+void userInputs(struct node* top);
+int findSortedPosition(struct node* top, int userPassportNumber);
+
 void displayAllPassenger(struct node* top);
 void getPassengerStatNames(int choice[6], char *statNames[6]);
 void isEmailValid(struct node* top);
@@ -47,41 +59,45 @@ int copyLinkedList(struct node* top, struct node** topTwo);
 void sortByDOB(struct node *top);
 void swapValues(struct node *valueOne, struct node *valueTwo);
 
-//global variables
+//global variables for statistics
 FILE* filep;
 int countedStatsOne[37];
 float finalStatOne[37];
-
 int countedStatsTwo[10];
 float finalStatTwo[10];
-
 const char *classes[] = { "Economy","Premium Economy","Business Class", "First Class"};
 const char *countries[] = { "UK:\t ","Europe:\t ","Asia:\t ","America: ","AustAsia ", "= 1 Day: ", "< 3 Days:", "< 7 Days:", "> 7 Days:"};
 
 void main()
 { 
+	//declare head pointer 1 and 2. 1 is for the main linked list. 2 is for the copied linked used for sorting
 	struct node* headPtr = NULL;
 	struct node* headPtr2 = NULL;
 
-	int pos;
-	int userSelection = 0;
-	int statisticsSelection = 0;
+	//userName and password variables
 	char userNameInput[30];
 	char passwordInput[15];
 	char passwordChar = ' ';
 	char userName[30];
 	char password[15];
 	
-	int i, j;
+	int pos;
+	int userSelection = 0;
+	int userPassportInput = 0;
+	int statisticsSelection = 0;
 
 	int found = 0;
 	int location = 0;
+	int sortedLocation = 0;
+	int sortedLength = 0;
 	int compare;
 	int lengthOfList = 0;
 	int ifCopied = 0;
 	int userInput;
 
 	int locationFound[2];
+
+	int i, j;
 
 	printf("XYZ Airport Ltd\n");
 	printf("===============\n\n");
@@ -142,9 +158,9 @@ void main()
 			//READ IN FROM FILE ====================
 			readPassengersFromFile(&headPtr);
 
+			//allow the user to enter a selection from the menu (intitial read)
 			do
 			{
-				//allow the user to enter a selection from the menu (intitial read)
 				printf("\n\nPlease select an option\n [1] Add Passenger\n [2] Display all passengers \n [3] Display passenger details\n");
 				printf(" [4] Update Passenger Statistics\n [5] Delete Passenger \n [6] Generate Statistic\n");
 				printf(" [7] Print all passenger details to report file\n [8] List all the passenger of	UK in order of DOB\n");
@@ -155,25 +171,58 @@ void main()
 					printf("Error! The value entered must be between 1 and 8, please try again\n");
 				}
 
-			} while (userSelection < 0 || userSelection > 8);
+			} while (userSelection < 0 || userSelection > 8); //validation to allow only numbers between 0 and 8
 
-			//while loop until -1 is encountered
+			// main while loop of program until -1 is encountered
 			while (userSelection != 0)
 			{
+				//switch based on the user input
 				switch (userSelection)
 				{
 				case 1:
 					printf("\nAdd a Passenger ============\n");
-					if (headPtr == NULL)
+
+					//ask the user to input values
+					do
 					{
-						addPassengerAtStart(&headPtr);
+						printf("\nPlease enter your passport number:\n");
+						scanf("%d", &userPassportInput);
+
+						//intitalize to 0
+						locationFound[1] = 0;
+
+						//call the search by passport function to check if the passport number already exists, if it does then it returns 1 into position 1 of the array
+						// the array is used so the function can be used again later in the program to cut down on code, it's basically returning two values.
+						searchListByPassport(headPtr, locationFound, userPassportInput);
+
+						if (locationFound[1] == 1) {
+							printf("Error! The passport number entered must be unique, please try again\n");
+						}
+					} while (locationFound[1] == 1); //validation to allow only if the passport number is unique
+
+					//gets the length of the linked list
+					sortedLength = length(headPtr);
+
+					//gets the position to place the node based on the order of passport numbers
+					sortedLocation = findSortedPosition(headPtr, userPassportInput);
+
+					if (headPtr == NULL || sortedLocation == 1)
+					{
+						//if the linked doesn't exist or the node is to be placed at the start (location 1)
+						addPassengerAtStart(&headPtr, userPassportInput);
 					}
-					else
+					else if (sortedLocation = length)
 					{
-						addPassengerAtEnd(headPtr);
+						//if the sorted location is the length, then the node should be placed at the end
+						addPassengerAtEnd(headPtr, userPassportInput);
+					}
+					else {
+						//place the node at the sorted location that was found, so that it is in order based on the passport number
+						addElementAtPos(headPtr, sortedLocation, userPassportInput);
 					}
 					break;
 				case 2:
+					//Display all passengers
 					if (headPtr == NULL)
 					{
 						printf("Error, the list is empty. Please add a passenger and try again.");
@@ -183,33 +232,39 @@ void main()
 					}
 					break;
 				case 3:
+					//Search for a spefic passenger and output their data if found
 					if (headPtr == NULL)
 					{
 						printf("Error, the list is empty. Please add a passenger and try again.");
 					}
 					else {
+						//search the list based on name or passport number and return the location
 						location = searchList(headPtr);
 
 						if (location == 0) {
 							printf("\nPassenger not found, please try again.");
 						}
 						else {
+							//display the passenger using the returned location
 							searchDisplayList(headPtr, location);
 						}
 					}
 					break;
 				case 4:
+					//update passenger details
 					if (headPtr == NULL)
 					{
 						printf("Error, the list is empty. Please add a passenger and try again.");
 					}
 					else {
+						//search the list based on name or passport number and return the location (used again to save code)
 						location = searchList(headPtr);
 
 						if (location == 0) {
 							printf("\nPassenger not found, please try again.");
 						}
 						else {
+							//update the passenger using the returned location
 							updatePassenger(headPtr, location);
 						}
 					}
@@ -223,6 +278,7 @@ void main()
 
 					else
 					{
+						//initialize values back to 0 to be able to use it again
 						locationFound[0] = 0;
 						locationFound[1] = 0;
 
@@ -230,6 +286,7 @@ void main()
 						printf("\nPlease enter the passport number to search by\n");
 						scanf("%d", &userInput);
 
+						//search the list only by passport number and return the location found into position 0 of the array (used again)
 						searchListByPassport(headPtr, locationFound, userInput);
 
 						if (locationFound[0] == 0) {
@@ -240,14 +297,17 @@ void main()
 
 							if (locationFound[0] < 2)
 							{
+								//if the location returned is 1 then it's at the start of the list so call that function
 								deletePassengerAtStart(&headPtr);
 							}
 							else if (locationFound[0] >= 2 && locationFound[0] < length(headPtr))
 							{
+								//if the location returned is 2 or more and is less then the length then it must be deleted at a specific position
 								deletePassengerAtPos(headPtr, locationFound[0]);
 							}
 							else
 							{
+								//otherwise delete at the end 
 								deletePassengerAtEnd(headPtr);
 							}
 						}
@@ -257,7 +317,7 @@ void main()
 					//generate statistics selection
 					do
 					{
-						//allow the user to enter a selection from the menu (intitial read)
+						//allow the user to enter a selection from the menu
 						printf("\n\nPlease select an option to generate statistics by\n [1] Travel Class\n [2] Born before 1980\n");
 						scanf("%d", &statisticsSelection);
 
@@ -265,8 +325,9 @@ void main()
 							printf("\nError! The value entered must be either 1 or 2, please try again.");
 						}
 
-					} while (statisticsSelection < 1 || statisticsSelection > 2);
+					} while (statisticsSelection < 1 || statisticsSelection > 2); //validation
 
+					//get the length of the list used to divide the result by the number of passengers then call the stats function
 					lengthOfList = length(headPtr);
 					generateStats(headPtr, statisticsSelection, lengthOfList);
 					break;
@@ -278,23 +339,31 @@ void main()
 					}
 					else {
 						printf("\nPrinting to file =========\n");
+
+						//get the length of the linked list to print at the top of the file (used when reading in the data)
 						lengthOfList = length(headPtr);
 						printPassengersToFile(headPtr, lengthOfList);
 
+						//print the generated stats to file
 						printStatsToFile();
 					}
 					break;
 				case 8:
+					//list in order of DOB selection
 					if (headPtr == NULL)
 					{
 						printf("Error, the list is empty. Please add a passenger and try again.");
 					}
 					else {
+						//check if the list has been copied already, so it's not done twice
 						if (ifCopied == 0) {
+							//call the method the copy the linked list into headPtr2 so it doesn't affect the main linked list when sorting
 							ifCopied = copyLinkedList(headPtr, &headPtr2);
 
+							//sort the newly copied linked list using a bubble sort
 							sortByDOB(headPtr2);
 						}
+						//display the sorted list ordered by DOB
 						displayAllPassenger(headPtr2);
 					}
 					break;
@@ -315,7 +384,7 @@ void main()
 						printf("Error! The value entered must be between 1 and 8, please try again\n");
 					}
 
-				} while (userSelection < 0 || userSelection > 8);
+				} while (userSelection < 0 || userSelection > 8); //validation.
 			} //while
 
 			//once the program is exited all the linked list data is printed to a file.
@@ -331,56 +400,20 @@ void main()
 	} while (found != 1); //overall outer do while to validate username/password input
 } */
 
-//FUNCTIONS ==================
 
-void addPassengerAtStart(struct node** top)
+//FUNCTIONS =================================
+
+void addPassengerAtStart(struct node** top, int passportNum)
 {
 	struct node* newNode;
 	newNode = (struct node*)malloc(sizeof(struct node));
 
 	printf("\nAdding to the start of the list:\n");
 
-	//no need to validate as the first node is always going to be unique 
-	printf("\nPlease enter your passport number:\n");
-	scanf("%d", &newNode->passportNum);
+	newNode->passportNum = passportNum;
 
-	printf("\nPlease enter your First Name:\n");
-	scanf("%s", newNode->firstName);
-
-	printf("\nPlease enter your Last Name:\n");
-	scanf("%s", newNode->secondName);
-
-	do
-	{
-		printf("\nPlease enter the year you were born (E.g 1990) It must be between 1920 and 2018.:\n");
-		scanf("%d", &newNode->dob);
-	} while (newNode->dob < 1920 || newNode->dob > 2018);
-
-	isEmailValid(newNode);
-
-	do
-	{
-		printf("\nWhich of the following areas did you travel from:\n [1] UK\n [2] Rest of Europe\n [3] Asia\n [4] Americas\n [5] Australasia\n");
-		scanf("%d", &newNode->countryTraveledFrom);
-	} while (newNode->countryTraveledFrom < 1 || newNode->countryTraveledFrom > 5);
-
-	do
-	{
-		printf("\nWhat travel class did you use to travel to Ireland:\n [1] Economy\n [2] Premium Economy\n [3] Business Class\n [4] First Class\n");
-		scanf("%d", &newNode->travelClass);
-	} while (newNode->travelClass < 1 || newNode->travelClass > 4);
-
-	do
-	{
-		printf("\nHow many trips to Ireland do you make per year:\n [1] Less than three times per year\n [2] Less than five times per year\n [3] More than five times per year\n");
-		scanf("%d", &newNode->tripsPerYear);
-	} while (newNode->tripsPerYear < 1 || newNode->tripsPerYear > 3);
-
-	do
-	{
-		printf("\nOn average how long is your duration:\n [1] One Day\n [2] Less than 3 days\n [3] Less than 7 days\n [4] More than 7 days\n");
-		scanf("%d", &newNode->journeyTime);
-	} while (newNode->journeyTime < 1 || newNode->journeyTime > 4);
+	//call the method for the user inputs
+	userInputs(newNode);
 
 	//set newNode->NEXT to the headpointer
 	newNode->NEXT = *top;
@@ -388,70 +421,19 @@ void addPassengerAtStart(struct node** top)
 	*top = newNode;
 }
 
-void addPassengerAtEnd(struct node* top)
+void addPassengerAtEnd(struct node* top, int passportNum)
 {
 	struct node* curr;
 	struct node* newNode;
-
-	int locationFound[2];
 
 	newNode = (struct node*)malloc(sizeof(struct node));
 
 	printf("\nAdding to the end of the list:\n");
 
-	//ask the user to input values
-	do
-	{
-		printf("\nPlease enter your passport number:\n");
-		scanf("%d", &newNode->passportNum);
+	newNode->passportNum = passportNum;
 
-		//intitalize to 0
-		locationFound[1] = 0;
-
-		searchListByPassport(top, locationFound, newNode->passportNum);
-
-		if (locationFound[1] == 1) {
-			printf("Error! The passport number entered must be unique, please try again\n");
-		}
-	} while (locationFound[1] == 1);
-
-	printf("\nPlease enter your First Name:\n");
-	scanf("%s", newNode->firstName);
-
-	printf("\nPlease enter your Last Name:\n");
-	scanf("%s", newNode->secondName);
-
-	do
-	{
-		printf("\nPlease enter the year you were born (E.g 1990) It must be between 1920 and 2018.:\n");
-		scanf("%d", &newNode->dob);
-	} while (newNode->dob < 1920 || newNode->dob > 2018);
-
-	isEmailValid(newNode);
-
-	do
-	{
-		printf("\nWhich of the following areas did you travel from:\n [1] UK\n [2] Rest of Europe\n [3] Asia\n [4] Americas\n [5] Australasia\n");
-		scanf("%d", &newNode->countryTraveledFrom);
-	} while (newNode->countryTraveledFrom < 1 || newNode->countryTraveledFrom > 5);
-
-	do
-	{
-		printf("\nWhat travel class did you use to travel to Ireland:\n [1] Economy\n [2] Premium Economy\n [3] Business Class\n [4] First Class\n");
-		scanf("%d", &newNode->travelClass);
-	} while (newNode->travelClass < 1 || newNode->travelClass > 4);
-
-	do
-	{
-		printf("\nHow many trips to Ireland do you make per year:\n [1] Less than three times per year\n [2] Less than five times per year\n [3] More than five times per year\n");
-		scanf("%d", &newNode->tripsPerYear);
-	} while (newNode->tripsPerYear < 1 || newNode->tripsPerYear > 3);
-
-	do
-	{
-		printf("\nOn average how long is your duration:\n [1] One Day\n [2] Less than 3 days\n [3] Less than 7 days\n [4] More than 7 days\n");
-		scanf("%d", &newNode->journeyTime);
-	} while (newNode->journeyTime < 1 || newNode->journeyTime > 4);
+	//call the method for the user inputs
+	userInputs(newNode);
 
 	// set curr to the headpointer NULL
 	curr = top;
@@ -467,6 +449,77 @@ void addPassengerAtEnd(struct node* top)
 	//set newNode->NEXT pointer to NULL to signify the end of the list
 	newNode->NEXT = NULL;
 }
+
+void addElementAtPos(struct node* top, int position, int passportNum)
+{
+	struct node* curr;
+	struct node* newNode;
+	int i;
+
+	newNode = (struct node*)malloc(sizeof(struct node));
+
+	printf("\nAdding to position: %d\n", position);
+
+	newNode->passportNum = passportNum;
+
+	//call the method for the user inputs
+	userInputs(newNode);
+
+	curr = top;
+
+	for (i = 0; i < position - 2; i++)
+	{
+		curr = curr->NEXT;
+
+	}
+
+	newNode->NEXT = curr->NEXT;
+	curr->NEXT = newNode;
+}
+
+//function which has all the user inputs and inputs them into the newNode that is passed in (it's used in all add functions to save code)
+void userInputs(struct node* top) {
+
+	printf("\nPlease enter your First Name:\n");
+	scanf("%s", top->firstName);
+
+	printf("\nPlease enter your Last Name:\n");
+	scanf("%s", top->secondName);
+
+	do
+	{
+		printf("\nPlease enter the year you were born (E.g 1990) It must be between 1920 and 2018.:\n");
+		scanf("%d", &top->dob);
+	} while (top->dob < 1920 || top->dob > 2018);
+
+	isEmailValid(top);
+
+	do
+	{
+		printf("\nWhich of the following areas did you travel from:\n [1] UK\n [2] Rest of Europe\n [3] Asia\n [4] Americas\n [5] Australasia\n");
+		scanf("%d", &top->countryTraveledFrom);
+	} while (top->countryTraveledFrom < 1 || top->countryTraveledFrom > 5);
+
+	do
+	{
+		printf("\nWhat travel class did you use to travel to Ireland:\n [1] Economy\n [2] Premium Economy\n [3] Business Class\n [4] First Class\n");
+		scanf("%d", &top->travelClass);
+	} while (top->travelClass < 1 || top->travelClass > 4);
+
+	do
+	{
+		printf("\nHow many trips to Ireland do you make per year:\n [1] Less than three times per year\n [2] Less than five times per year\n [3] More than five times per year\n");
+		scanf("%d", &top->tripsPerYear);
+	} while (top->tripsPerYear < 1 || top->tripsPerYear > 3);
+
+	do
+	{
+		printf("\nOn average how long is your duration:\n [1] One Day\n [2] Less than 3 days\n [3] Less than 7 days\n [4] More than 7 days\n");
+		scanf("%d", &top->journeyTime);
+	} while (top->journeyTime < 1 || top->journeyTime > 4);
+
+}
+
 
 void isEmailValid(struct node* top) {
 
@@ -665,6 +718,31 @@ int searchList(struct node* top)
 	return passengerNumFinal;
 }
 
+int findSortedPosition(struct node* top, int userPassportNumber)
+{
+	struct node* curr;
+	int locatation = 0;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	//while the current pointer is not equal to null continue through the list
+	while (curr != NULL)
+	{
+		locatation++;
+
+		//if the value is found print out the value, location and exit the loop
+		if (curr->passportNum > userPassportNumber) {
+			break;
+		}
+
+		//move curr to the next pointer
+		curr = curr->NEXT;
+	}
+
+	return locatation;
+}
+
 //function to search a specific element in a list by passport and return the location
 void searchListByPassport(struct node* top, int locationFoundArray[2], int userInput)
 {
@@ -755,9 +833,7 @@ void updatePassenger(struct node* top, int passengerLocation) {
 		}
 	}
 
-	//ask the user to input values
-	printf("\nPlease enter your new email address:\n");
-	scanf("%s", curr->emailAddress);
+	isEmailValid(curr);
 
 	do
 	{
