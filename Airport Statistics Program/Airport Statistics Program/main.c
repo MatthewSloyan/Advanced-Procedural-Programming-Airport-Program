@@ -25,29 +25,34 @@ struct node
 };
 
 //function declaration
+//adding functions
 void addPassengerAtStart(struct node** top, int passportNum);
 void addPassengerAtEnd(struct node* top, int passportNum);
 void addElementAtPos(struct node* top, int position, int passportNum);
 void userInputs(struct node* top);
 int findSortedPosition(struct node* top, int userPassportNumber);
-
-void displayAllPassenger(struct node* top);
-void getPassengerStatNames(int choice[6], char *statNames[6]);
 void isEmailValid(struct node* top);
 
-void readPassengersFromFile(struct node** top);
-void printPassengersToFile(struct node* top, int length);
+//displaying
+void displayAllPassenger(struct node* top);
+void getPassengerStatNames(int choice[6], char *statNames[6]);
 
+//searches
 int searchList(struct node* top);
 void searchListByPassport(struct node* top, int locationFoundArray[2], int userInput);
-
 void searchDisplayList(struct node* top, int passengerLocation);
-void updatePassenger(struct node* top, int passengerLocation);
 
+//update or delete
+void updatePassenger(struct node* top, int passengerLocation);
 void deletePassengerAtStart(struct node** top);
 void deletePassengerAtEnd(struct node* top);
 void deletePassengerAtPos(struct node* top, int passengerLocation);
 
+//read from file or print to file
+void readPassengersFromFile(struct node** top);
+void printPassengersToFile(struct node* top, int length);
+
+//statistics functions
 void generateStats(struct node* top, int selection, int length);
 void countCountryStats(int travelClass, int travelFrom, int selection, int pos);
 void countDuration(int travelClass, int duration, int selection, int pos);
@@ -55,6 +60,7 @@ void printStatsToConsole(int selection);
 void printStatsToFile();
 int length(struct node* top);
 
+//copy and sort
 int copyLinkedList(struct node* top, struct node** topTwo);
 void sortByDOB(struct node *top);
 void swapValues(struct node *valueOne, struct node *valueTwo);
@@ -102,7 +108,7 @@ void main()
 	printf("XYZ Airport Ltd\n");
 	printf("===============\n\n");
 
-	/*do
+	do
 	{
 		printf("Please enter your username: ");
 		scanf("%s", userNameInput);
@@ -153,7 +159,7 @@ void main()
 
 		if (found == 1) {
 			//print greeting message when access is granted
-			printf("\n\nAccess granted, hello %s!", userNameInput); */
+			printf("\n\nAccess granted, hello %s!", userNameInput);
 
 			//READ IN FROM FILE ====================
 			readPassengersFromFile(&headPtr);
@@ -393,29 +399,32 @@ void main()
 		} //if found
 
 		//if user not found output error message
-		/*if (found != 1) {
+		if (found != 1) {
 			printf("\n\nUser not found, please try again.\n\n");
 		}
 
 	} while (found != 1); //overall outer do while to validate username/password input
-} */
+}
 
 
 //FUNCTIONS =================================
 
+//functio to add a passenger at the start of a new linked list
 void addPassengerAtStart(struct node** top, int passportNum)
 {
+	//create a new node and instantiate
 	struct node* newNode;
 	newNode = (struct node*)malloc(sizeof(struct node));
 
 	printf("\nAdding to the start of the list:\n");
 
+	//set the passed in passport number
 	newNode->passportNum = passportNum;
 
-	//call the method for the user inputs
+	//call the method for the rest of the user inputs and pass in the newNode
 	userInputs(newNode);
 
-	//set newNode->NEXT to the headpointer
+	//set newNode->NEXT to the headpointer which is a double pointer
 	newNode->NEXT = *top;
 	//set the head pointer to the newNode
 	*top = newNode;
@@ -423,6 +432,7 @@ void addPassengerAtStart(struct node** top, int passportNum)
 
 void addPassengerAtEnd(struct node* top, int passportNum)
 {
+	//create a new node, curr node and instantiate
 	struct node* curr;
 	struct node* newNode;
 
@@ -430,12 +440,13 @@ void addPassengerAtEnd(struct node* top, int passportNum)
 
 	printf("\nAdding to the end of the list:\n");
 
+	//set the passed in passport number
 	newNode->passportNum = passportNum;
 
 	//call the method for the user inputs
 	userInputs(newNode);
 
-	// set curr to the headpointer NULL
+	// set curr to the head pointer
 	curr = top;
 
 	//loop through till you find the last node
@@ -460,17 +471,19 @@ void addElementAtPos(struct node* top, int position, int passportNum)
 
 	printf("\nAdding to position: %d\n", position);
 
+	//set the passed in passport number
 	newNode->passportNum = passportNum;
 
 	//call the method for the user inputs
 	userInputs(newNode);
 
+	// set curr to the head pointer
 	curr = top;
 
+	//loop through till at the position before the one passed in to add element bewteen them
 	for (i = 0; i < position - 2; i++)
 	{
 		curr = curr->NEXT;
-
 	}
 
 	newNode->NEXT = curr->NEXT;
@@ -490,7 +503,7 @@ void userInputs(struct node* top) {
 	{
 		printf("\nPlease enter the year you were born (E.g 1990) It must be between 1920 and 2018.:\n");
 		scanf("%d", &top->dob);
-	} while (top->dob < 1920 || top->dob > 2018);
+	} while (top->dob < 1920 || top->dob > 2018); //validation to make sure it's a correct dob
 
 	isEmailValid(top);
 
@@ -520,7 +533,34 @@ void userInputs(struct node* top) {
 
 }
 
+//find the position to place a node based on the order of the passport number
+int findSortedPosition(struct node* top, int userPassportNumber)
+{
+	struct node* curr;
+	int locatation = 0;
 
+	//set the curr to the head pointer
+	curr = top;
+
+	//while the current pointer is not equal to null continue through the list
+	while (curr != NULL)
+	{
+		locatation++;
+
+		//if the value is greater than the passed in passport number then use this location and exit
+		if (curr->passportNum > userPassportNumber) {
+			break;
+		}
+
+		//move curr to the next pointer
+		curr = curr->NEXT;
+	}
+
+	//return the location the method call
+	return locatation;
+}
+
+//function to check if the email is valid
 void isEmailValid(struct node* top) {
 
 	int n = 0;
@@ -528,7 +568,7 @@ void isEmailValid(struct node* top) {
 	int foundAtSymbol = 0;
 	int foundDotCom = 0;
 	int foundAll = 0;
-	char *returnedValue;
+	char *returnedValue; //pointer to the returned string
 
 	do
 	{
@@ -540,6 +580,7 @@ void isEmailValid(struct node* top) {
 		foundDotCom = 0;
 
 		n = 0;
+		//loop through the string input and check if the character at n is a fullstop
 		while (top->emailAddress[n] != '\0') {
 			if (top->emailAddress[n] == '.') {
 				foundFullStop = 1;
@@ -548,6 +589,7 @@ void isEmailValid(struct node* top) {
 		}
 
 		n = 0;
+		//loop through the string input and check if the character at n is a @ symbol
 		while (top->emailAddress[n] != '\0') {
 			if (top->emailAddress[n] == '@') {
 				foundAtSymbol = 1;
@@ -555,12 +597,15 @@ void isEmailValid(struct node* top) {
 			n++;
 		}
 
+		//call the strstr() method to find the first occurance of the substring .com in the string input
 		returnedValue = strstr(top->emailAddress, ".com");
 
+		//if returned string is not equal to null then found
 		if (returnedValue) {
 			foundDotCom = 1;
 		}
 
+		//if all found variables are equal to one then email is valid
 		if (foundFullStop == 1) {
 			if (foundAtSymbol == 1) {
 				if (foundDotCom == 1) {
@@ -568,9 +613,10 @@ void isEmailValid(struct node* top) {
 				}
 			}
 		}
-	} while (foundAll == 0);
+	} while (foundAll == 0); //validation to make sure all criteria is present
 }
 
+//function to display all passenger details to the console
 void displayAllPassenger(struct node* top)
 {
 	struct node* curr;
@@ -582,20 +628,24 @@ void displayAllPassenger(struct node* top)
 	int choices[6];
 	char *values[6] = {'\0'};
 
-	//initalize to 0
+	//initalize the user choices and values array 0
 	for (i = 0; i < 6; i++)
 	{
 		choices[i] = 0;
 		values[i] = " ";
 	}
 
+	//loop through nodes till the headpointer is null to make sure you get all values
 	while (curr != NULL)
 	{
+		//place the curr linked list values for countryTraveledFrom, travelClass, tripsPerYear and journeyTime into the array.
 		choices[0] = curr->countryTraveledFrom;
 		choices[1] = curr->travelClass;
 		choices[2] = curr->tripsPerYear;
 		choices[3] = curr->journeyTime;
 
+		//call the method to set the curr nodes values as strings rather than numbers depending on what the user entered.
+		//the values array is updated in the method and used to print out below. E.g 1 for countryTraveledFrom would become UK.
 		getPassengerStatNames(choices, values);
 
 		printf("\nPASSENGER %d\n===========\n", passengerNum + 1);
@@ -608,13 +658,17 @@ void displayAllPassenger(struct node* top)
 		printf("Travel Class: \t\t%s\n", values[1]);
 		printf("Trips per year: \t%s\n", values[2]);
 		printf("Duration: \t\t%s\n", values[3]);
+
+		//set the curr to the next pointer
 		curr = curr->NEXT;
 		passengerNum++;
 	}
 }
 
+//function to get the user values as a string rather than a number (used again in the display selected passenger)
 void getPassengerStatNames(int choice[6], char *statNames[6]) {
 
+	//get the string value for the choice input for countryTraveledFrom
 	switch (choice[0])
 	{
 	case 1:
@@ -633,6 +687,7 @@ void getPassengerStatNames(int choice[6], char *statNames[6]) {
 		statNames[0]= "Australasia";
 	}
 
+	//get the string value for the choice input for travelClass
 	switch (choice[1])
 	{
 	case 1:
@@ -648,6 +703,7 @@ void getPassengerStatNames(int choice[6], char *statNames[6]) {
 		statNames[1] = "First Class";
 	}
 
+	//get the string value for the choice input for tripsPerYear
 	switch (choice[2])
 	{
 	case 1:
@@ -660,6 +716,7 @@ void getPassengerStatNames(int choice[6], char *statNames[6]) {
 		statNames[2] = "> than 5 times per year";
 	}
 
+	//get the string value for the choice input for journeyTime
 	switch (choice[3])
 	{
 	case 1:
@@ -676,7 +733,7 @@ void getPassengerStatNames(int choice[6], char *statNames[6]) {
 	}
 }
 
-//function to search a specific element in a list and return the location
+//function to search a specific element in a list based on the passport num or name and return the location
 int searchList(struct node* top)
 {
 	struct node* curr;
@@ -701,7 +758,7 @@ int searchList(struct node* top)
 		//convert the passport number to a string for comparision
 		sprintf(passPortNumConverted, "%d", curr->passportNum);
 
-		//if the value is found print out the value, location and exit the loop
+		//if either the passort number, first name or last name is found
 		if (strcmp(userInput, passPortNumConverted) == 0 || strcmp(userInput, curr->firstName) == 0 || strcmp(userInput, curr->secondName) == 0) {
 			curr = curr->NEXT;
 			found = 1;
@@ -712,36 +769,14 @@ int searchList(struct node* top)
 		curr = curr->NEXT;
 	}
 
+	//if found set the final value for the location/passenger number 
 	if (found == 1) {
 		passengerNumFinal = passengerNum;
 	}
 	return passengerNumFinal;
 }
 
-int findSortedPosition(struct node* top, int userPassportNumber)
-{
-	struct node* curr;
-	int locatation = 0;
 
-	//set the curr to the head pointer
-	curr = top;
-
-	//while the current pointer is not equal to null continue through the list
-	while (curr != NULL)
-	{
-		locatation++;
-
-		//if the value is found print out the value, location and exit the loop
-		if (curr->passportNum > userPassportNumber) {
-			break;
-		}
-
-		//move curr to the next pointer
-		curr = curr->NEXT;
-	}
-
-	return locatation;
-}
 
 //function to search a specific element in a list by passport and return the location
 void searchListByPassport(struct node* top, int locationFoundArray[2], int userInput)
@@ -758,7 +793,7 @@ void searchListByPassport(struct node* top, int locationFoundArray[2], int userI
 	{
 		passengerNum++;
 
-		//if the value is found print out the value, location and exit the loop
+		//if the value is found set pos q in the array to 1 (found)
 		if (userInput == curr->passportNum) {
 			curr = curr->NEXT;
 			locationFoundArray[1] = 1;
@@ -770,6 +805,7 @@ void searchListByPassport(struct node* top, int locationFoundArray[2], int userI
 	}
 
 	if (locationFoundArray[1] == 1) {
+		//if found also set the pos 0 to the location of the passenger in the linked list, basically returning two values to the caller
 		locationFoundArray[0] = passengerNum;
 	}
 }
@@ -783,7 +819,7 @@ void searchDisplayList(struct node* top, int passengerLocation)
 	int choices[6];
 	char *values[6] = { '\0' };
 
-	//initalize to 0
+	//initalize the user choices and values array 0
 	for (i = 0; i < 6; i++)
 	{
 		choices[i] = 0;
@@ -793,20 +829,25 @@ void searchDisplayList(struct node* top, int passengerLocation)
 	//set the curr to the head pointer
 	curr = top;
 
+	//place the curr linked list values for countryTraveledFrom, travelClass, tripsPerYear and journeyTime into the array.
 	choices[0] = curr->countryTraveledFrom;
 	choices[1] = curr->travelClass;
 	choices[2] = curr->tripsPerYear;
 	choices[3] = curr->journeyTime;
 
+	//call the method to set the curr nodes values as strings rather than numbers depending on what the user entered.
+	//the values array is updated in the method and used to print out below. E.g 1 for countryTraveledFrom would become UK.
 	getPassengerStatNames(choices, values);
 
 	if (passengerLocation != 1) {
+		//loop through linked list till at the position of the passed in location
 		for (i = 0; i < passengerLocation - 1; i++)
 		{
 			curr = curr->NEXT;
 		}
 	}
 
+	//print out the values of the curr node and the returned array values
 	printf("\nPASSENGER %d\n===========\n", passengerLocation);
 	printf("Passport Num: \t\t%d\n", curr->passportNum);
 	printf("Name: \t\t\t%s %s\n", curr->firstName, curr->secondName);
@@ -827,12 +868,14 @@ void updatePassenger(struct node* top, int passengerLocation) {
 	curr = top;
 
 	if (passengerLocation != 1) {
+		//loop through linked list till at the position of the passed in location
 		for (i = 0; i < passengerLocation - 1; i++)
 		{
 			curr = curr->NEXT;
 		}
 	}
 
+	//input updated values, only allows for basic inputs like email etc.
 	isEmailValid(curr);
 
 	do
@@ -863,11 +906,15 @@ void updatePassenger(struct node* top, int passengerLocation) {
 //function to delete a passenger at the start of the linked list
 void deletePassengerAtStart(struct node** top)
 {
-	struct node* temp;
+	struct node* curr;
 
-	temp = *top;
-	*top = temp->NEXT;
-	free(temp);
+	//set curr to the headpointer
+	curr = *top;
+	//set the headpointer to the pointer of the next node to start the list there now
+	*top = curr->NEXT;
+
+	//free the deleted node
+	free(curr);
 }
 
 //function to delete a passenger at the end of the linked list
@@ -878,12 +925,14 @@ void deletePassengerAtEnd(struct node* top)
 
 	curr = top;
 
+	//loop through to get to the end of the list
 	while (curr->NEXT != NULL)
 	{
 		prev_curr = curr;
 		curr = curr->NEXT;
 	}
 
+	//set the end pointer to null to signify the end of the list
 	prev_curr->NEXT = NULL;
 	free(curr);
 }
@@ -897,12 +946,14 @@ void deletePassengerAtPos(struct node* top, int passengerLocation)
 
 	curr = top;
 
+	//loop through linked list till at the position of the passed in location
 	for (i = 0; i < passengerLocation - 1; i++)
 	{
 		prev_curr = curr;
 		curr = curr->NEXT;
 	}
 
+	//set the previous pointer to the next pointer and free curr e.g 1 2 3, 1 is linked to 3 and 2 is deleted
 	prev_curr->NEXT = curr->NEXT;
 	free(curr);
 }
@@ -914,6 +965,7 @@ void printPassengersToFile(struct node* top, int length)
 
 	curr = top;
 
+	//open the file for reading
 	filep = fopen("passenger.txt", "w");
 
 	if (filep == NULL)
@@ -923,6 +975,7 @@ void printPassengersToFile(struct node* top, int length)
 
 	else
 	{
+		//print the length of the list at the top, which is used when reading in.
 		fprintf(filep, "%d\n", length);
 
 		while (curr != NULL)
@@ -952,7 +1005,7 @@ void readPassengersFromFile(struct node** top) {
 	int i;
 	int length = 0;
 
-	//open the that the player has entered if found
+	//open the file for reading if exists
 	filep = fopen("passenger.txt", "r");
 
 	if (filep == NULL)
@@ -965,9 +1018,10 @@ void readPassengersFromFile(struct node** top) {
 		//read in the length of the list
 		fscanf(filep, "%d", &length);
 
-		//scan in the each players cards into array
+		//scan in the each passenger into a new node based on the lenth of the list
 		for (i = 0; i < length; i++)
 		{
+			//create a new node for each passenger
 			newNode = (struct node*)malloc(sizeof(struct node));
 
 			//read in the passenger details from the file
@@ -981,15 +1035,17 @@ void readPassengersFromFile(struct node** top) {
 			fscanf(filep, "%d", &newNode->tripsPerYear);
 			fscanf(filep, "%d", &newNode->journeyTime);
 
+			//add to the start of the list, used only for first passenger
 			if (i == 0) {
 				//set newNode->NEXT to the headpointer
 				newNode->NEXT = *top;
 				//set the head pointer to the newNode
 				*top = newNode;
 
-				// set curr to the headpointer NULL
+				//set curr to the headpointer to start the list
 				curr = *top;
 			}
+			//add to the end of the list
 			else {
 				//loop through till you find the last node
 				while (curr->NEXT != NULL)
@@ -1008,25 +1064,6 @@ void readPassengersFromFile(struct node** top) {
 	} //else
 }
 
-//function to get the length of the linked list
-int length(struct node* top)
-{
-	struct node* curr;
-	int length = 0;
-
-	//set the curr to the head pointer
-	curr = top;
-
-	//while the current pointer is not equal to null continue through the list
-	while (curr != NULL)
-	{
-		length++; //increment the length at every node
-		curr = curr->NEXT; //move curr to the next pointer
-	}
-
-	return length;
-}
-
 //function to generate the statistics based on the user input
 void generateStats(struct node* top, int selection, int length) {
 
@@ -1037,6 +1074,7 @@ void generateStats(struct node* top, int selection, int length) {
 
 	curr = top;
 
+	//statistics option 1 (by travel class)
 	if (selection == 1) {
 		//initalize the arrays to zero or back to 0
 		for (i = 0; i < 36; i++)
@@ -1047,15 +1085,17 @@ void generateStats(struct node* top, int selection, int length) {
 
 		while (curr != NULL)
 		{
+			//I developed two functions which can do all 9 statistics for all four travel classes in one go by calling a function and passing in the values
+
+			//first five stats
+			//loop four times, once for every travel class. E.g 1 = Economny
 			for (i = 0; i < 4; i++)
 			{
+				//pass in the travel class chosen, the country traveled from, the selection and position to start placing at in the array. This is explained further in the function
 				countCountryStats(curr->travelClass, curr->countryTraveledFrom, i + 1, i*9);
 			}
 
-			/*for (i = 0; i < 4; i++)
-			{
-				countDuration(curr->travelClass, curr->journeyTime, i + 1, posCounter);
-			}*/
+			//last four stats, again for each class and position, but for some reason I couldn't get this working with a loop.
 			countDuration(curr->travelClass, curr->journeyTime, 1, 5);
 			countDuration(curr->travelClass, curr->journeyTime, 2, 14);
 			countDuration(curr->travelClass, curr->journeyTime, 3, 23);
@@ -1064,13 +1104,18 @@ void generateStats(struct node* top, int selection, int length) {
 			curr = curr->NEXT;
 		}
 
+		//loop through the array of all the counts to calculate the percentage
 		for (i = 0; i < 36; i++)
 		{
+			//using a new array update the counted values by diving by the number of passengers X 100.
 			finalStatOne[i] = (float)countedStatsOne[i] / length * 100;
 		}
 
+		//print the stats to the colsole with the selection for by class
 		printStatsToConsole(1);
 	}
+
+	//statistics option 2 (if age is less than 1980)
 	else {
 		//initalize the arrays to zero or back to 0
 		for (i = 0; i < 10; i++)
@@ -1081,8 +1126,10 @@ void generateStats(struct node* top, int selection, int length) {
 
 		while (curr != NULL)
 		{
+			//if the current person is older than 38, then check with the following values and increment
 			if (curr->dob < 1980) {
 
+				//if they were from the UK along with being older than 38 increment pos 0 by 1.
 				if (curr->countryTraveledFrom == 1)
 					countedStatsTwo[0]++;
 				else if (curr->countryTraveledFrom == 2)
@@ -1107,17 +1154,29 @@ void generateStats(struct node* top, int selection, int length) {
 			curr = curr->NEXT;
 		}
 
+		//loop through the array of all the counts to calculate the percentage
 		for (i = 0; i < 9; i++)
 		{
+			//using a new array update the counted values by diving by the number of passengers X 100.
 			finalStatTwo[i] = (float)countedStatsTwo[i] / length * 100;
 		}
 
+		//print the stats to the colsole with the selection for if age is before 1980
 		printStatsToConsole(2);
 	}
 }
 
+//function to count up values for the first 5 stats in option 1 (by travel class)
 void countCountryStats(int travelClass, int travelFrom, int selection, int pos) {
 
+	// the first value passed in is the travel class. e.g 1 = Economy
+	// the second value passed in is the country travled from e.g 1 = UK
+	//the third value passed in is the selection from 1-4, so it's called for each one to check if theres a match with it
+	//the last value passed in is the position to start placing the values in at. So on the second loop it will start placing the values at 9 up to 14.
+
+	//using the example from the previous line value 9 -14 would be incremented if the current person was from the premium economy class (selection 2)..
+	//and if it matched one of the chosen countries it would be incremented by 1. So if they were from asia "countedStatsOne[pos + 2]++" would be incremented by 1 at position 11.
+	//For every class it moves 9 positions, so economy is 1-5, prem economy is 9-14 and so on. Also 5-9 is used for the other duration stats.
 	if (travelClass == selection) {
 		if (travelFrom == 1)
 			countedStatsOne[pos]++;
@@ -1132,9 +1191,12 @@ void countCountryStats(int travelClass, int travelFrom, int selection, int pos) 
 	}
 }
 
-//function to count each class or year born and which country they traveled to.
+//function to count up values for the last 4 stats in option 1 (by travel class)
+//it counts up each class or year born and which country traveled to.
 void countDuration(int travelClass, int duration, int selection, int pos) {
 
+	//This is much the same as countCountryStats, but with one less option as theres only four durations to choose from
+	//this now puts values in at positions 5-9, 14-18 and so on to put them in order for printing out
 	if (travelClass == selection) {
 		if (duration == 1)
 			countedStatsOne[pos]++;
@@ -1156,19 +1218,23 @@ void printStatsToConsole(int selection) {
 	if (selection == 1) {
 		for (i = 0; i < 36; i++)
 		{
+			//if the value is in between classes print out the global variable with all the class names hard coded in.
 			if (i == 0 || i == 9 || i == 18 || i == 27) {
 				printf("\n%s ===========\n", classes[pos]);
 				pos++;
 			}
+			//print out the global variable with all the stat names hard coded in along with the calculated percentage value.
 			printf("%s %12.2f%%\n", countries[counter], finalStatOne[i]);
 			counter++;
 
+			//set counter back to print out again in order
 			if (counter == 9) {
 				counter = 0;
 			}
 		}
 	}
 	else {
+		//print out stats for born before 1980
 		printf("\nBorn before 1980 ========\n");
 		for (i = 0; i < 9; i++)
 		{
@@ -1183,6 +1249,7 @@ void printStatsToFile() {
 	int pos = 0;
 	int counter = 0;
 
+	//open the file for writing
 	filep = fopen("passengerStatistics.txt", "w");
 
 	if (filep == NULL)
@@ -1192,6 +1259,8 @@ void printStatsToFile() {
 
 	else
 	{
+		//very similar to printing to the console but with fprintf's
+		//print by travel class
 		for (i = 0; i < 36; i++)
 		{
 			if (i == 0 || i == 9 || i == 18 || i == 27) {
@@ -1206,6 +1275,7 @@ void printStatsToFile() {
 			}
 		}
 
+		//print before 1980's
 		fprintf(filep, "\n\nBorn before 1980 ========\n");
 		for (i = 0; i < 9; i++)
 		{
@@ -1216,6 +1286,26 @@ void printStatsToFile() {
 	}
 }
 
+//function to get the length of the linked list
+int length(struct node* top)
+{
+	struct node* curr;
+	int length = 0;
+
+	//set the curr to the head pointer
+	curr = top;
+
+	//while the current pointer is not equal to null continue through the list
+	while (curr != NULL)
+	{
+		length++; //increment the length at every node
+		curr = curr->NEXT; //move curr to the next pointer
+	}
+
+	return length;
+}
+
+//function to make a copy of the linked list using headPtr2 so it doesn't affect the main list when sorting
 int copyLinkedList(struct node* top, struct node** topTwo)
 {
 	struct node* curr;
@@ -1231,6 +1321,7 @@ int copyLinkedList(struct node* top, struct node** topTwo)
 	{
 		newNode = (struct node*)malloc(sizeof(struct node));
 
+		//copy all the current values to a new node
 		newNode->passportNum = curr->passportNum;
 		strcpy(newNode->firstName, curr->firstName);
 		strcpy(newNode->secondName, curr->secondName);
@@ -1241,17 +1332,19 @@ int copyLinkedList(struct node* top, struct node** topTwo)
 		newNode->tripsPerYear = curr->tripsPerYear;
 		newNode->journeyTime = curr->journeyTime;
 
+		//adding to the start of the list (only used for the first value) 
 		if (pos == 0) {
 			//set newNode->NEXT to the headpointer
 			newNode->NEXT = *topTwo;
 			//set the head pointer to the newNode
 			*topTwo = newNode;
 
-			// set curr to the headpointer NULL
+			// set curr to the headpointer 2
 			currTwo = *topTwo;
 		}
+		//adding to the end of the list
 		else {
-			//loop through till you find the last node
+			//loop through till you find the last node in the new linked list
 			while (currTwo->NEXT != NULL)
 			{
 				currTwo = currTwo->NEXT;
@@ -1268,12 +1361,14 @@ int copyLinkedList(struct node* top, struct node** topTwo)
 		ifDone = 1;
 		curr = curr->NEXT;
 	}
+	//return ifDone to make sure it's only ever done once
 	return ifDone;
 }
 
-/* Bubble sort the given linked lsit */
+// function which uses a Bubble sort to sort the linked list by dob
 void sortByDOB(struct node *top)
 {
+	//I researched different sorts and learned how the bubble sort works and devised an algorithm to sort it based on the passengers dob
 	int swapCondition, i;
 	struct node *curr;
 
@@ -1282,6 +1377,8 @@ void sortByDOB(struct node *top)
 		swapCondition = 0;
 		curr = top;
 
+		//it works by going though the list over and over again till it's sorted making one change when it can. So if the curr dob is greater than the next one then it swaps the next node with the previous one.
+		//e.g curr = 1990 and curr->NEXT = 1980 they would be swapped and become 1980, 1990
 		while (curr->NEXT != NULL)
 		{
 			if (curr->dob > curr->NEXT->dob)
@@ -1307,6 +1404,11 @@ void swapValues(struct node *valueOne, struct node *valueTwo)
 	int tempTripsPerYear;
 	int tempJourneyTime;
 
+	//valueOne = curr value
+	//valueTwo = curr->NEXT
+	//first save the curr value to be able to add it to curr->NEXT (valueTwo->passportNum)
+	//then set valueTwo to valueOne swapping the values
+	//then set valueTwo to the saved temp value to finish the swap
 	tempPassportNum = valueOne->passportNum;
 	valueOne->passportNum = valueTwo->passportNum;
 	valueTwo->passportNum = tempPassportNum;
